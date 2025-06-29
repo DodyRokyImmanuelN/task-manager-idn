@@ -11,7 +11,7 @@ use App\Models\TaskComments;
 use App\Models\User;
 class TaskDropdown extends Model
 {
-    protected $fillable = ['task_list_id', 'title','description'];
+    protected $fillable = ['task_list_id', 'title','description','due_date',];
 
     public function TaskList()
     {

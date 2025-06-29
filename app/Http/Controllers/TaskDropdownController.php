@@ -14,6 +14,7 @@ class TaskDropdownController extends Controller
             'task_list_id' => 'required|exists:task_lists,id',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'due_date' => 'nullable|date',
             'assignee_ids' => 'nullable|array',
             'assignee_ids.*' => 'exists:users,id',
         ]);
@@ -25,6 +26,7 @@ class TaskDropdownController extends Controller
                 'task_list_id' => $validated['task_list_id'],
                 'title' => $validated['title'],
                 'description' => $validated['description'] ?? null,
+                'due_date' => $validated['due_date'] ?? null,
             ]);
 
             if (!empty($validated['assignee_ids'])) {
@@ -36,7 +38,7 @@ class TaskDropdownController extends Controller
             return response()->json([
                 'message' => 'Task created successfully.',
                 'task' => $task->load('assignees'),
-            ], 201); // HTTP 201 Created
+            ], 201);
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -50,8 +52,9 @@ class TaskDropdownController extends Controller
     public function update(Request $request, $id)
     {
         $validated = $request->validate([
-            'title' => 'sometimes|string|max:255', // Ditambahkan field title
+            'title' => 'sometimes|string|max:255',
             'description' => 'nullable|string',
+            'due_date' => 'nullable|date',
             'assignee_ids' => 'nullable|array',
             'assignee_ids.*' => 'exists:users,id',
         ]);
@@ -64,9 +67,9 @@ class TaskDropdownController extends Controller
             $task->update([
                 'title' => $validated['title'] ?? $task->title,
                 'description' => $validated['description'] ?? $task->description,
+                'due_date' => array_key_exists('due_date', $validated) ? $validated['due_date'] : $task->due_date,
             ]);
 
-            // Sync akan bekerja meskipun assignee_ids null atau array kosong
             $task->assignees()->sync($validated['assignee_ids'] ?? []);
 
             DB::commit();

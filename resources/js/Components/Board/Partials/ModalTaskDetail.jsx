@@ -3,6 +3,7 @@ import axios from "axios";
 
 export default function ModalTaskDetail({ task, list, onClose }) {
     const [description, setDescription] = useState(task.description || "");
+    const [dueDate, setDueDate] = useState(task.due_date || "");
     const [isEditing, setIsEditing] = useState(false);
     const [newChecklistItem, setNewChecklistItem] = useState("");
     const [comments, setComments] = useState(task.comments || []);
@@ -20,6 +21,9 @@ export default function ModalTaskDetail({ task, list, onClose }) {
         Array.isArray(task.checklists) ? task.checklists : []
     );
     useEffect(() => {
+        setDueDate(task.due_date || "");
+    }, [task.due_date]);
+    useEffect(() => {
         // Update assignees saat task berubah
         setAssignees(task.assignees || []);
     }, [task.assignees]);
@@ -32,6 +36,22 @@ export default function ModalTaskDetail({ task, list, onClose }) {
     useEffect(() => {
         setDescription(task.description || "");
     }, [task.description]);
+
+    const handleDueDateChange = (date) => {
+        setDueDate(date);
+
+        axios
+            .put(`/task-dropdowns/${task.id}`, {
+                due_date: date || null,
+            })
+            .then((res) => {
+                setDueDate(res.data.task.due_date);
+            })
+            .catch((err) => {
+                console.error("Failed to update due date", err);
+                alert("Failed to update due date");
+            });
+    };
 
     const handleAddAssignee = (user) => {
         setAssignees((prev) => [...prev, user]);
@@ -86,6 +106,7 @@ export default function ModalTaskDetail({ task, list, onClose }) {
         try {
             const response = await axios.put(`/task-dropdowns/${task.id}`, {
                 description,
+                due_date: dueDate || null,
                 assignee_ids: assignees.map((a) => a.id),
             });
 
@@ -94,6 +115,7 @@ export default function ModalTaskDetail({ task, list, onClose }) {
             // Update state lokal
             setDescription(updatedTask.description);
             setAssignees(updatedTask.assignees);
+            setDueDate(updatedTask.due_date);
             setIsEditing(false);
 
             // Panggil callback untuk update parent component tanpa menutup modal
@@ -396,10 +418,33 @@ export default function ModalTaskDetail({ task, list, onClose }) {
 
                         <div>
                             <p className="text-gray-600">Due Date</p>
-                            <button className="text-indigo-600 hover:underline">
-                                📅 No due date
-                            </button>
+                            {dueDate ? (
+                                <div className="flex items-center justify-between text-sm mt-1">
+                                    <span className="text-gray-800">
+                                        {dueDate}
+                                    </span>
+                                    <button
+                                        onClick={() => handleDueDateChange("")}
+                                        className="text-red-500 text-xs hover:underline ml-2"
+                                    >
+                                        ✕ Remove
+                                    </button>
+                                </div>
+                            ) : (
+                                <p className="text-gray-400 italic text-sm">
+                                    No due date
+                                </p>
+                            )}
+                            <input
+                                type="date"
+                                value={dueDate || ""}
+                                onChange={(e) =>
+                                    handleDueDateChange(e.target.value)
+                                }
+                                className="mt-2 text-sm border px-2 py-1 rounded w-full"
+                            />
                         </div>
+
                         <div>
                             <p className="text-gray-600">Labels</p>
                             <button className="text-indigo-600 hover:underline">
