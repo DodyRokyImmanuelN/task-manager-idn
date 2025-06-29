@@ -416,33 +416,28 @@ export default function ModalTaskDetail({ task, list, onClose }) {
                             )}
                         </div>
 
-                        <div>
-                            <p className="text-gray-600">Due Date</p>
-                            {dueDate ? (
-                                <div className="flex items-center justify-between text-sm mt-1">
-                                    <span className="text-gray-800">
-                                        {dueDate}
-                                    </span>
+                        <div className="mt-4">
+                            <label className="text-gray-600 text-sm">
+                                Due Date
+                            </label>
+                            <div className="flex items-center gap-2 mt-1">
+                                <input
+                                    type="date"
+                                    value={dueDate || ""}
+                                    onChange={(e) =>
+                                        handleDueDateChange(e.target.value)
+                                    }
+                                    className="text-sm border px-2 py-1 rounded w-full"
+                                />
+                                {dueDate && (
                                     <button
                                         onClick={() => handleDueDateChange("")}
-                                        className="text-red-500 text-xs hover:underline ml-2"
+                                        className="text-red-500 text-xs hover:underline"
                                     >
-                                        ✕ Remove
+                                        ✕
                                     </button>
-                                </div>
-                            ) : (
-                                <p className="text-gray-400 italic text-sm">
-                                    No due date
-                                </p>
-                            )}
-                            <input
-                                type="date"
-                                value={dueDate || ""}
-                                onChange={(e) =>
-                                    handleDueDateChange(e.target.value)
-                                }
-                                className="mt-2 text-sm border px-2 py-1 rounded w-full"
-                            />
+                                )}
+                            </div>
                         </div>
 
                         <div>
