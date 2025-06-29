@@ -1,7 +1,11 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import LabelDropdown from "@/Components/Board/LabelDropdown";
+import LabelTag from "@/Components/Board/LabelTag";
 
 export default function ModalTaskDetail({ task, list, onClose }) {
+    const [label, setLabel] = useState(task.label || null);
+    const [showDropdown, setShowDropdown] = useState(false);
     const [description, setDescription] = useState(task.description || "");
     const [dueDate, setDueDate] = useState(task.due_date || "");
     const [isEditing, setIsEditing] = useState(false);
@@ -21,6 +25,9 @@ export default function ModalTaskDetail({ task, list, onClose }) {
         Array.isArray(task.checklists) ? task.checklists : []
     );
     useEffect(() => {
+        setLabel(task.label || null);
+    }, [task.label]);
+    useEffect(() => {
         setDueDate(task.due_date || "");
     }, [task.due_date]);
     useEffect(() => {
@@ -36,6 +43,28 @@ export default function ModalTaskDetail({ task, list, onClose }) {
     useEffect(() => {
         setDescription(task.description || "");
     }, [task.description]);
+
+    const handleSelect = async (selected) => {
+        try {
+            // Kirim ke server, agar label disimpan (jika belum ada)
+            const response = await axios.post("/labels/attach", {
+                name: selected.name,
+                color: selected.color,
+            });
+
+            const label = response.data.label;
+
+            setLabel(label); // simpan di local state
+
+            // Update ke task_dropdowns
+            await axios.put(`/task-dropdowns/${task.id}`, {
+                label_id: label.id,
+            });
+        } catch (err) {
+            console.error("Gagal menyimpan label", err);
+            alert("Gagal menyimpan label");
+        }
+    };
 
     const handleDueDateChange = (date) => {
         setDueDate(date);
@@ -107,6 +136,7 @@ export default function ModalTaskDetail({ task, list, onClose }) {
             const response = await axios.put(`/task-dropdowns/${task.id}`, {
                 description,
                 due_date: dueDate || null,
+                label_id: label ? label.id : null,
                 assignee_ids: assignees.map((a) => a.id),
             });
 
@@ -116,6 +146,7 @@ export default function ModalTaskDetail({ task, list, onClose }) {
             setDescription(updatedTask.description);
             setAssignees(updatedTask.assignees);
             setDueDate(updatedTask.due_date);
+            setLabel(updatedTask.label);
             setIsEditing(false);
 
             // Panggil callback untuk update parent component tanpa menutup modal
@@ -440,11 +471,37 @@ export default function ModalTaskDetail({ task, list, onClose }) {
                             </div>
                         </div>
 
-                        <div>
-                            <p className="text-gray-600">Labels</p>
-                            <button className="text-indigo-600 hover:underline">
-                                ＋
-                            </button>
+                        <div className="mt-4 relative">
+                            <div className="flex items-center justify-between">
+                                <p className="text-gray-600 text-sm font-semibold">
+                                    Label
+                                </p>
+                                <button
+                                    onClick={() =>
+                                        setShowDropdown(!showDropdown)
+                                    }
+                                    className="text-gray-600 hover:text-black px-2 text-lg font-bold"
+                                >
+                                    +
+                                </button>
+                            </div>
+
+                            {showDropdown && (
+                                <LabelDropdown
+                                    onSelect={handleSelect}
+                                    onCloseDropdown={() =>
+                                        setShowDropdown(false)
+                                    }
+                                />
+                            )}
+
+                            {label && (
+                                <LabelTag
+                                    label={label}
+                                    taskId={task.id}
+                                    onClear={() => setLabel(null)}
+                                />
+                            )}
                         </div>
                         <div>
                             <p className="text-gray-600">Repeat</p>

@@ -11,6 +11,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\TaskDropdownController;
 use App\Http\Controllers\TaskChecklistController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\LabelController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 
 
@@ -26,6 +27,7 @@ Route::middleware(['auth', 'verified'])->get('/dashboard', [DashboardController:
 
 // AUTHENTICATED ROUTES
 Route::middleware(['auth'])->group(function () {
+
      
 
     Route::get('/projects/{id}/board', [TaskListController::class, 'boardView'])->name('projects.board');
@@ -39,6 +41,10 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/task-dropdowns/{id}', [TaskDropdownController::class, 'update']);
         Route::delete('/task-dropdowns/{id}', [TaskDropdownController::class, 'destroy']);
         Route::put('/task-dropdowns/{id}/assign', [TaskDropdownController::class, 'assign']);
+
+        Route::get('/labels', [LabelController::class, 'index']);
+        Route::post('/labels', [LabelController::class, 'store']);
+        Route::post('/labels/attach', [LabelController::class, 'attach']);
 
 
     });

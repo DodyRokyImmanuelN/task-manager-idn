@@ -17,6 +17,7 @@ class TaskDropdownController extends Controller
             'due_date' => 'nullable|date',
             'assignee_ids' => 'nullable|array',
             'assignee_ids.*' => 'exists:users,id',
+            'label_id' => 'nullable|exists:labels,id',
         ]);
 
         try {
@@ -27,6 +28,7 @@ class TaskDropdownController extends Controller
                 'title' => $validated['title'],
                 'description' => $validated['description'] ?? null,
                 'due_date' => $validated['due_date'] ?? null,
+                'label_id' => $validated['label_id'] ?? null,
             ]);
 
             if (!empty($validated['assignee_ids'])) {
@@ -37,7 +39,7 @@ class TaskDropdownController extends Controller
 
             return response()->json([
                 'message' => 'Task created successfully.',
-                'task' => $task->load('assignees'),
+                'task' => $task->load(['assignees', 'label']),
             ], 201);
 
         } catch (\Exception $e) {
@@ -57,6 +59,7 @@ class TaskDropdownController extends Controller
             'due_date' => 'nullable|date',
             'assignee_ids' => 'nullable|array',
             'assignee_ids.*' => 'exists:users,id',
+            'label_id' => 'nullable|exists:labels,id',
         ]);
 
         $task = TaskDropdown::findOrFail($id);
@@ -68,15 +71,18 @@ class TaskDropdownController extends Controller
                 'title' => $validated['title'] ?? $task->title,
                 'description' => $validated['description'] ?? $task->description,
                 'due_date' => array_key_exists('due_date', $validated) ? $validated['due_date'] : $task->due_date,
+                'label_id' => $validated['label_id'] ?? $task->label_id,
             ]);
 
-            $task->assignees()->sync($validated['assignee_ids'] ?? []);
+            if (isset($validated['assignee_ids'])) {
+                $task->assignees()->sync($validated['assignee_ids']);
+            }
 
             DB::commit();
 
             return response()->json([
                 'message' => 'Task updated successfully.',
-                'task' => $task->load('assignees'),
+                'task' => $task->load(['assignees', 'label']),
             ]);
 
         } catch (\Exception $e) {
@@ -88,29 +94,32 @@ class TaskDropdownController extends Controller
         }
     }
 
+    /**
+     * Optional: Manual assign single user (not recommended for multi-assignee setup)
+     */
     public function assign(Request $request, $id)
     {
         $validated = $request->validate([
-            'assignee_id' => 'required|exists:users,id',
+            'user_id' => 'required|exists:users,id',
         ]);
 
         try {
             DB::beginTransaction();
 
             $task = TaskDropdown::findOrFail($id);
-            $task->update(['assignee_id' => $validated['assignee_id']]);
+            $task->assignees()->attach($validated['user_id']); // ← gunakan attach jika ingin menambah
 
             DB::commit();
 
             return response()->json([
-                'message' => 'Assignee updated successfully.',
-                'assignee' => $task->fresh()->assignee,
+                'message' => 'User assigned successfully.',
+                'task' => $task->load('assignees'),
             ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
-                'message' => 'Failed to assign task',
+                'message' => 'Failed to assign user to task',
                 'error' => $e->getMessage()
             ], 500);
         }

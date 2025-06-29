@@ -7,6 +7,7 @@ use App\Models\Branches;
 use App\Models\TaskList;
 use App\Models\TaskComments;
 use App\Models\User;
+use App\Models\Label;
 use Illuminate\Http\Request;
 
 use Illuminate\Support\Facades\Auth;
@@ -37,6 +38,7 @@ class TaskListController extends Controller
     $branch = Branches::with([
         'taskLists.taskDropdowns.checklists',
         'taskLists.taskDropdowns.comments.user',
+        'taskLists.taskDropdowns.label',
         'taskLists.taskDropdowns.assignees',
 
     ])->findOrFail($branchId);

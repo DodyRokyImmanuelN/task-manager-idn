@@ -9,9 +9,11 @@ use App\Models\TaskList;
 use App\Models\TaskChecklist;
 use App\Models\TaskComments;
 use App\Models\User;
+use App\Models\TaskLabels;
+use App\Models\Label;
 class TaskDropdown extends Model
 {
-    protected $fillable = ['task_list_id', 'title','description','due_date',];
+    protected $fillable = ['task_list_id', 'title','description','due_date',"label_id", 'assignee_id'];
 
     public function TaskList()
     {
@@ -29,4 +31,10 @@ public function assignees()
 {
     return $this->belongsToMany(User::class, 'assignee_task_dropdown');
 }
+public function label()
+{
+    return $this->belongsTo(Label::class);
+}
+
+
 }
