@@ -34,7 +34,9 @@ class TaskListController extends Controller
     }
 
     public function boardView($branchId)
+    
 {
+     $user = Auth::user();
     $branch = Branches::with([
         'taskLists.taskDropdowns.checklists',
         'taskLists.taskDropdowns.comments.user',
@@ -43,6 +45,23 @@ class TaskListController extends Controller
         
 
     ])->findOrFail($branchId);
+    if ($user->role !== 'superadmin') {
+        // Ambil semua task_dropdowns dalam branch ini
+        $assigned = false;
+        foreach ($branch->taskLists as $list) {
+            foreach ($list->taskDropdowns as $task) {
+                if ($task->assignees->contains('id', $user->id)) {
+                    $assigned = true;
+                    break 2; // keluar dari dua loop langsung
+                }
+            }
+        }
+
+        if (!$assigned) {
+            return redirect()->route('dashboard')->with('error', 'Kamu tidak punya akses ke board ini.');
+        }
+    }
+
 
     return Inertia::render('Board/Index', [
         'branch' => $branch,

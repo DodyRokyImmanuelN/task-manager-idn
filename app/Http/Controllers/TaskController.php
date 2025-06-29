@@ -108,19 +108,25 @@ class TaskController extends Controller
     }
 
     public function addComment(Request $request, $id)
-    {
-        $request->validate([
-            'comment' => 'required|string',
-        ]);
+{
+    $request->validate([
+        'comment' => 'required|string',
+    ]);
 
-        $comment = TaskComment::create([
-            'task_id' => $id,
-            'user_id' => Auth::id(),
-            'comment' => $request->comment,
-        ]);
+    $task = Task::findOrFail($id);
 
-        return response()->json($comment);
+    if ($task->assignee_id !== Auth::id()) {
+        abort(403, 'You are not assigned to this task.');
     }
+
+    $comment = TaskComment::create([
+        'task_id' => $id,
+        'user_id' => Auth::id(),
+        'comment' => $request->comment,
+    ]);
+
+    return response()->json($comment);
+}
 
     public function createByMonitor(Request $request)
     {

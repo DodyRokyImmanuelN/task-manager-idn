@@ -48,19 +48,6 @@ export default function AuthenticatedLayout({ children }) {
                         Dashboard
                     </Link>
 
-                    {user?.role === "user" && (
-                        <Link
-                            href="/my-tasks"
-                            className={`block p-2 rounded transition-all duration-200 ${
-                                isActive("/my-tasks")
-                                    ? "bg-gray-800 font-semibold"
-                                    : "hover:bg-gray-800"
-                            }`}
-                        >
-                            My Tasks
-                        </Link>
-                    )}
-
                     {(user?.role === "admin" ||
                         user?.role === "superadmin") && (
                         <Link
@@ -72,6 +59,19 @@ export default function AuthenticatedLayout({ children }) {
                             }`}
                         >
                             Guest Requests
+                        </Link>
+                    )}
+                    {(user?.role === "admin" ||
+                        user?.role === "superadmin") && (
+                        <Link
+                            href="users"
+                            className={`block p-2 rounded transition-all duration-200 ${
+                                isActive("users")
+                                    ? "bg-gray-800 font-semibold"
+                                    : "hover:bg-gray-800"
+                            }`}
+                        >
+                            User Management
                         </Link>
                     )}
 

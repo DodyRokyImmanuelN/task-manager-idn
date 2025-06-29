@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use App\Models\branches;
 
 class User extends Authenticatable
 {
@@ -48,5 +49,10 @@ public function assignedTasks()
 public function taskDropdowns()
 {
     return $this->belongsToMany(TaskDropdown::class, 'assignee_task_dropdown');
+}
+
+public function branches()
+{
+    return $this->belongsToMany(Branches::class);
 }
 }

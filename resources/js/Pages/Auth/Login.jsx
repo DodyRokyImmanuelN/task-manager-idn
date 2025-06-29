@@ -35,10 +35,15 @@ export default function Login({ status, canResetPassword }) {
                 <h2 className="text-xl font-semibold text-gray-700 mb-6">
                     TASK MANAGEMENT
                 </h2>
-
                 {status && (
                     <div className="mb-4 text-sm font-medium text-green-600">
                         {status}
+                    </div>
+                )}
+
+                {errors.email && (
+                    <div className="mb-4 text-sm font-medium text-red-600 bg-red-100 border border-red-300 px-4 py-2 rounded">
+                        {errors.email}
                     </div>
                 )}
 

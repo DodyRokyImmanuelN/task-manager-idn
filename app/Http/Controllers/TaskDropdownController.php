@@ -66,6 +66,10 @@ class TaskDropdownController extends Controller
             'label_id' => 'nullable|exists:labels,id',
             'repeat' => 'nullable|in:none,daily,weekly,monthly'
         ]);
+        // ✅ Hanya admin/superadmin yang boleh update assignee
+        if (!in_array(Auth::user()->role, ['admin', 'superadmin'])) {
+        return response()->json(['message' => 'Unauthorized to assign users.'], 403);
+        }
         
 
         $task = TaskDropdown::findOrFail($id);
