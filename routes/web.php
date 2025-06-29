@@ -38,6 +38,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/task-dropdowns', [TaskDropdownController::class, 'store']);
         Route::put('/task-dropdowns/{id}', [TaskDropdownController::class, 'update']);
         Route::delete('/task-dropdowns/{id}', [TaskDropdownController::class, 'destroy']);
+        Route::put('/task-dropdowns/{id}/assign', [TaskDropdownController::class, 'assign']);
 
 
     });
@@ -60,7 +61,7 @@ Route::middleware(['auth'])->group(function () {
 
         Route::post('/task-comments', [TaskCommentController::class, 'store'])->name('task-comments.store');
 
-        Route::put('/task-dropdowns/{id}/assign', [TaskDropdownController::class, 'assign']);
+        
 
         Route::delete('/task-checklists/{id}', [TaskChecklistController::class, 'destroy']);
     });

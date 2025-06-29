@@ -19,6 +19,10 @@ export default function ModalTaskDetail({ task, list, onClose }) {
     const [checklists, setChecklists] = useState(
         Array.isArray(task.checklists) ? task.checklists : []
     );
+    useEffect(() => {
+        // Update assignees saat task berubah
+        setAssignees(task.assignees || []);
+    }, [task.assignees]);
 
     useEffect(() => {
         axios.get("/users").then((res) => setUserOptions(res.data));
@@ -28,17 +32,36 @@ export default function ModalTaskDetail({ task, list, onClose }) {
     useEffect(() => {
         setDescription(task.description || "");
     }, [task.description]);
-    const handleAssign = (userId) => {
+
+    const handleAddAssignee = (user) => {
+        setAssignees((prev) => [...prev, user]);
+        setShowAssigneeDropdown(false);
+
+        // Langsung update ke backend
         axios
-            .put(`/task-dropdowns/${task.id}/assign`, {
-                assignee_id: userId,
-            })
-            .then((res) => {
-                setAssignee(res.data.assignee);
-                setShowAssigneeDropdown(false);
+            .put(`/task-dropdowns/${task.id}`, {
+                assignee_ids: [...assignees, user].map((a) => a.id),
             })
             .catch((err) => {
-                console.error("Failed to assign", err);
+                console.error("Failed to update assignees", err);
+                // Rollback jika gagal
+                setAssignees((prev) => prev.filter((u) => u.id !== user.id));
+            });
+    };
+
+    const handleRemoveAssignee = (userId) => {
+        const newAssignees = assignees.filter((u) => u.id !== userId);
+        setAssignees(newAssignees);
+
+        // Langsung update ke backend
+        axios
+            .put(`/task-dropdowns/${task.id}`, {
+                assignee_ids: newAssignees.map((a) => a.id),
+            })
+            .catch((err) => {
+                console.error("Failed to update assignees", err);
+                // Rollback jika gagal
+                setAssignees(assignees);
             });
     };
 
@@ -67,14 +90,18 @@ export default function ModalTaskDetail({ task, list, onClose }) {
             });
 
             const updatedTask = response.data.task;
+
+            // Update state lokal
             setDescription(updatedTask.description);
-            setAssigneeId(updatedTask.assignee_id);
             setAssignees(updatedTask.assignees);
             setIsEditing(false);
 
-            if (onUpdate) onUpdate(updatedTask);
+            // Panggil callback untuk update parent component tanpa menutup modal
+
+            // Tambahkan notifikasi sukses
         } catch (err) {
             console.error("Failed to update task", err);
+            alert("Failed to save changes. Please try again.");
         }
     };
 
@@ -315,11 +342,8 @@ export default function ModalTaskDetail({ task, list, onClose }) {
                                             <span>{user.name}</span>
                                             <button
                                                 onClick={() =>
-                                                    setAssignees((prev) =>
-                                                        prev.filter(
-                                                            (u) =>
-                                                                u.id !== user.id
-                                                        )
+                                                    handleRemoveAssignee(
+                                                        user.id
                                                     )
                                                 }
                                                 className="text-red-500 text-xs hover:underline"
@@ -359,15 +383,9 @@ export default function ModalTaskDetail({ task, list, onClose }) {
                                             <li
                                                 key={user.id}
                                                 className="cursor-pointer hover:bg-gray-100 px-2 py-1"
-                                                onClick={() => {
-                                                    setAssignees((prev) => [
-                                                        ...prev,
-                                                        user,
-                                                    ]);
-                                                    setShowAssigneeDropdown(
-                                                        false
-                                                    );
-                                                }}
+                                                onClick={() =>
+                                                    handleAddAssignee(user)
+                                                }
                                             >
                                                 {user.name}
                                             </li>
