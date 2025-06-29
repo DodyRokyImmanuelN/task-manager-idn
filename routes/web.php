@@ -29,8 +29,12 @@ Route::middleware(['auth', 'verified'])->get('/dashboard', [DashboardController:
 Route::middleware(['auth'])->group(function () {
 
      
+Route::get('/branches/total', [BranchesController::class, 'getTotal']);
 
     Route::get('/projects/{id}/board', [TaskListController::class, 'boardView'])->name('projects.board');
+    Route::get('/projects/{project}/tasks/{task}', function ($project, $task) {
+    return redirect("/projects/{$project}/board?task={$task}");
+});
 
     // SUPERADMIN 
     Route::middleware('auth')->group(function ()  {

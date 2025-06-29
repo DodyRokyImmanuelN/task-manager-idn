@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head } from "@inertiajs/react";
 import {
@@ -14,10 +15,17 @@ export default function Dashboard({
     auth,
     openTasks,
     completedTasks,
-    totalProjects,
+
     weeklyData,
     monthlyData,
 }) {
+    const [totalProjects, setTotalProjects] = useState(0);
+
+    useEffect(() => {
+        axios.get("/branches/total").then((res) => {
+            setTotalProjects(res.data.total);
+        });
+    }, []);
     return (
         <AuthenticatedLayout auth={auth}>
             <Head title="Dashboard" />

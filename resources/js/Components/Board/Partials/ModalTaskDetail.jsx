@@ -3,7 +3,7 @@ import axios from "axios";
 import LabelDropdown from "@/Components/Board/LabelDropdown";
 import LabelTag from "@/Components/Board/LabelTag";
 
-export default function ModalTaskDetail({ task, list, onClose }) {
+export default function ModalTaskDetail({ task, list, onClose, branches }) {
     const [repeat, setRepeat] = useState(task.repeat || "none");
     const [label, setLabel] = useState(task.label || null);
     const [showDropdown, setShowDropdown] = useState(false);
@@ -25,6 +25,13 @@ export default function ModalTaskDetail({ task, list, onClose }) {
     const [checklists, setChecklists] = useState(
         Array.isArray(task.checklists) ? task.checklists : []
     );
+    useEffect(() => {
+        const redirectUrl = sessionStorage.getItem("redirectAfterReload");
+        if (redirectUrl) {
+            sessionStorage.removeItem("redirectAfterReload");
+            window.location.href = redirectUrl;
+        }
+    }, []);
     useEffect(() => {
         setLabel(task.label || null);
     }, [task.label]);
@@ -243,8 +250,17 @@ export default function ModalTaskDetail({ task, list, onClose }) {
 
                     <button
                         onClick={() => {
-                            onClose(false);
-                            window.location.reload(); // 🔁 reload full page
+                            // Simpan URL target tanpa query ?task ke sessionStorage
+                            const cleanUrl =
+                                window.location.origin +
+                                window.location.pathname;
+                            sessionStorage.setItem(
+                                "redirectAfterReload",
+                                cleanUrl
+                            );
+
+                            // Reload halaman (task akan masuk ke DB dan data segar akan diambil)
+                            window.location.reload();
                         }}
                         className="text-gray-500 text-xl font-bold"
                     >
@@ -561,10 +577,23 @@ export default function ModalTaskDetail({ task, list, onClose }) {
                                 Delete
                             </button>
                         </div>
-                        <div>
-                            <p className="text-gray-600">Share</p>
-                            <button className="hover:underline">🔗</button>
-                        </div>
+                        <button
+                            onClick={() => {
+                                const url = `${window.location.origin}/projects/${branches.id}/board?task=${task.id}`;
+                                navigator.clipboard
+                                    .writeText(url)
+                                    .then(() => {
+                                        alert("Link copied to clipboard!");
+                                    })
+                                    .catch((err) => {
+                                        console.error("Clipboard error:", err);
+                                        alert("Clipboard copy failed.");
+                                    });
+                            }}
+                            className="text-indigo-600 hover:underline text-sm mt-1"
+                        >
+                            Copy Link
+                        </button>
                     </div>
                 </div>
             </div>

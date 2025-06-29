@@ -76,4 +76,11 @@ class BranchesController extends Controller
 
         return $colors[array_rand($colors)];
     }
+    // BranchController.php
+public function getTotal()
+{
+    $total = \App\Models\Branches::count();
+    return response()->json(['total' => $total]);
+}
+
 }

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import TaskListColumn from "@/Components/Board/TaskListColumn";
 import { usePage, router } from "@inertiajs/react";
@@ -19,6 +19,24 @@ export default function Index() {
             tasks: list.tasks || [], // Ensure tasks is always an array
         }))
     );
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const taskId = parseInt(params.get("task"));
+
+        if (taskId) {
+            for (const list of taskLists) {
+                const foundTask = list.task_dropdowns?.find(
+                    (t) => t.id === taskId
+                );
+                if (foundTask) {
+                    setSelectedTask(foundTask);
+                    setSelectedList(list);
+                    break;
+                }
+            }
+        }
+    }, [taskLists]);
+
     const handleDeleteList = async (list) => {
         try {
             await axios.delete(`/task-lists/${list.id}`);
@@ -30,8 +48,15 @@ export default function Index() {
     };
 
     const handleTaskClick = (task, list) => {
-        setSelectedTask(task);
+        setSelectedTask({
+            ...task,
+            project_id: branch.id, // ⬅️ Tambahkan ini
+        });
         setSelectedList(list);
+
+        const url = new URL(window.location.href);
+        url.searchParams.set("task", task.id);
+        window.history.pushState({}, "", url);
     };
 
     const handleAddTask = async (taskListId, title) => {
@@ -173,6 +198,7 @@ export default function Index() {
                     <ModalTaskDetail
                         task={selectedTask}
                         list={selectedList}
+                        branches={branch}
                         onClose={(shouldReload, updatedTask) => {
                             setSelectedTask(null);
                             setSelectedList(null);

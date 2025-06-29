@@ -17,7 +17,7 @@ class TaskList extends Model
     public function branch()
     {
         return $this->belongsTo(Branches::class);
-    }
+    }   
 
     public function tasks()
     {
@@ -28,4 +28,8 @@ class TaskList extends Model
     {
         return $this->hasMany(TaskDropdown::class);
     }
+    public function project()
+{
+    return $this->belongsTo(Project::class);
+}
 }

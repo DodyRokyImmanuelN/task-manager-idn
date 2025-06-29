@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\TaskDropdown;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia; 
 
 class TaskDropdownController extends Controller
 {
@@ -145,14 +147,20 @@ class TaskDropdownController extends Controller
 }
 public function show($projectId, $taskId)
 {
+    $user = Auth::user();
+
+    if (!$user) {
+        abort(403, 'Unauthorized');
+    }
+
     $task = TaskDropdown::with(['assignees', 'label', 'checklists', 'comments', 'list'])
         ->where('id', $taskId)
         ->whereHas('list', function ($q) use ($projectId) {
-            $q->where('project_id', $projectId);
+            $q->where('branch_id', $projectId); // ← Fix here
         })
         ->firstOrFail();
 
-    $branch = $task->list->project;
+    $branch = $task->list->branch;
 
     return Inertia::render('Board/Show', [
         'task' => $task,
@@ -160,4 +168,6 @@ public function show($projectId, $taskId)
         'branch' => $branch,
     ]);
 }
+
+
 }
