@@ -55,7 +55,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/tasks', [TaskController::class, 'store']);
         Route::post('/tasks/{id}/assign', [TaskController::class, 'assign']);
         Route::put('/tasks/{id}', [TaskController::class, 'update']);
-        Route::delete('/tasks/{id}', [TaskController::class, 'destroy']);
+        Route::delete('/task-lists/{id}', [TaskListController::class, 'destroy']);
 
         Route::get('/guest-requests', [GuestRequestController::class, 'index']);
         Route::post('/guest-requests/{id}/approve', [GuestRequestController::class, 'approve']);

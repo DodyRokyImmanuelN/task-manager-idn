@@ -40,11 +40,19 @@ class TaskListController extends Controller
         'taskLists.taskDropdowns.comments.user',
         'taskLists.taskDropdowns.label',
         'taskLists.taskDropdowns.assignees',
+        
 
     ])->findOrFail($branchId);
 
     return Inertia::render('Board/Index', [
         'branch' => $branch,
     ]);
+}
+public function destroy($id)
+{
+    $list = TaskList::findOrFail($id);
+    $list->delete();
+
+    return response()->json(['message' => 'List deleted successfully.']);
 }
 }

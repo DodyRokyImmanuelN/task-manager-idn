@@ -13,7 +13,7 @@ use App\Models\TaskLabels;
 use App\Models\Label;
 class TaskDropdown extends Model
 {
-    protected $fillable = ['task_list_id', 'title','description','due_date',"label_id", 'assignee_id'];
+    protected $fillable = ['task_list_id', 'title','description','due_date',"label_id", 'assignee_id','repeat'];
 
     public function TaskList()
     {

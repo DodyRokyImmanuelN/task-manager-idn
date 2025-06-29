@@ -19,6 +19,15 @@ export default function Index() {
             tasks: list.tasks || [], // Ensure tasks is always an array
         }))
     );
+    const handleDeleteList = async (list) => {
+        try {
+            await axios.delete(`/task-lists/${list.id}`);
+            setTaskLists((prev) => prev.filter((l) => l.id !== list.id));
+        } catch (error) {
+            console.error("Gagal menghapus list:", error);
+            alert("Gagal menghapus list.");
+        }
+    };
 
     const handleTaskClick = (task, list) => {
         setSelectedTask(task);
@@ -116,7 +125,7 @@ export default function Index() {
                         key={list.id}
                         list={list}
                         onAddTaskClick={handleAddTask}
-                        onDeleteListClick={() => {}}
+                        onDeleteListClick={handleDeleteList}
                         onTaskClick={handleTaskClick}
                     />
                 ))}

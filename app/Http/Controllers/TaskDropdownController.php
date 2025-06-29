@@ -18,6 +18,7 @@ class TaskDropdownController extends Controller
             'assignee_ids' => 'nullable|array',
             'assignee_ids.*' => 'exists:users,id',
             'label_id' => 'nullable|exists:labels,id',
+            'repeat' => 'nullable|in:none,daily,weekly,monthly'
         ]);
 
         try {
@@ -29,6 +30,7 @@ class TaskDropdownController extends Controller
                 'description' => $validated['description'] ?? null,
                 'due_date' => $validated['due_date'] ?? null,
                 'label_id' => $validated['label_id'] ?? null,
+                'repeat' => $validated['repeat'] ?? 'none',
             ]);
 
             if (!empty($validated['assignee_ids'])) {
@@ -60,7 +62,9 @@ class TaskDropdownController extends Controller
             'assignee_ids' => 'nullable|array',
             'assignee_ids.*' => 'exists:users,id',
             'label_id' => 'nullable|exists:labels,id',
+            'repeat' => 'nullable|in:none,daily,weekly,monthly'
         ]);
+        
 
         $task = TaskDropdown::findOrFail($id);
 
@@ -72,6 +76,7 @@ class TaskDropdownController extends Controller
                 'description' => $validated['description'] ?? $task->description,
                 'due_date' => array_key_exists('due_date', $validated) ? $validated['due_date'] : $task->due_date,
                 'label_id' => $validated['label_id'] ?? $task->label_id,
+                'repeat' => $validated['repeat'] ?? 'none',
             ]);
 
             if (isset($validated['assignee_ids'])) {
@@ -124,4 +129,35 @@ class TaskDropdownController extends Controller
             ], 500);
         }
     }
+    public function destroy($id)
+{
+    $task = TaskDropdown::findOrFail($id);
+
+    try {
+        $task->delete();
+        return response()->json(['message' => 'Task deleted successfully.']);
+    } catch (\Exception $e) {
+        return response()->json([
+            'message' => 'Failed to delete task',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
+public function show($projectId, $taskId)
+{
+    $task = TaskDropdown::with(['assignees', 'label', 'checklists', 'comments', 'list'])
+        ->where('id', $taskId)
+        ->whereHas('list', function ($q) use ($projectId) {
+            $q->where('project_id', $projectId);
+        })
+        ->firstOrFail();
+
+    $branch = $task->list->project;
+
+    return Inertia::render('Board/Show', [
+        'task' => $task,
+        'list' => $task->list,
+        'branch' => $branch,
+    ]);
+}
 }

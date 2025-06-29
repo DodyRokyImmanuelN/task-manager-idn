@@ -4,6 +4,7 @@ import LabelDropdown from "@/Components/Board/LabelDropdown";
 import LabelTag from "@/Components/Board/LabelTag";
 
 export default function ModalTaskDetail({ task, list, onClose }) {
+    const [repeat, setRepeat] = useState(task.repeat || "none");
     const [label, setLabel] = useState(task.label || null);
     const [showDropdown, setShowDropdown] = useState(false);
     const [description, setDescription] = useState(task.description || "");
@@ -44,6 +45,17 @@ export default function ModalTaskDetail({ task, list, onClose }) {
         setDescription(task.description || "");
     }, [task.description]);
 
+    const handleDeleteTask = async () => {
+        if (confirm("Are you sure you want to delete this task?")) {
+            try {
+                await axios.delete(`/task-dropdowns/${task.id}`);
+                onClose("delete"); // Tutup modal dan beri sinyal ke parent
+            } catch (err) {
+                console.error("Failed to delete task", err);
+            }
+        }
+    };
+
     const handleSelect = async (selected) => {
         try {
             // Kirim ke server, agar label disimpan (jika belum ada)
@@ -80,6 +92,21 @@ export default function ModalTaskDetail({ task, list, onClose }) {
                 console.error("Failed to update due date", err);
                 alert("Failed to update due date");
             });
+    };
+    const handleAddRepeat = async (newRepeat) => {
+        setRepeat(newRepeat);
+
+        try {
+            const response = await axios.put(`/task-dropdowns/${task.id}`, {
+                repeat: newRepeat,
+            });
+
+            // Optional: update repeat dari response
+            setRepeat(response.data.task.repeat);
+        } catch (err) {
+            console.error("Failed to update repeat", err);
+            alert("Gagal memperbarui repeat");
+        }
     };
 
     const handleAddAssignee = (user) => {
@@ -138,6 +165,7 @@ export default function ModalTaskDetail({ task, list, onClose }) {
                 due_date: dueDate || null,
                 label_id: label ? label.id : null,
                 assignee_ids: assignees.map((a) => a.id),
+                repeat,
             });
 
             const updatedTask = response.data.task;
@@ -503,16 +531,31 @@ export default function ModalTaskDetail({ task, list, onClose }) {
                                 />
                             )}
                         </div>
-                        <div>
-                            <p className="text-gray-600">Repeat</p>
-                            <button className="text-indigo-600 hover:underline">
-                                ＋
-                            </button>
+                        <div className="mt-4">
+                            <p className="text-sm text-gray-600 font-semibold">
+                                Repeat
+                            </p>
+                            <select
+                                value={repeat}
+                                onChange={(e) =>
+                                    handleAddRepeat(e.target.value)
+                                }
+                                className="w-full border rounded-md px-2 py-1 text-sm mt-1"
+                            >
+                                <option value="none">Tidak Berulang</option>
+                                <option value="daily">Harian</option>
+                                <option value="weekly">Mingguan</option>
+                                <option value="monthly">Bulanan</option>
+                            </select>
                         </div>
+
                         <div>
                             <p className="text-gray-600">Delete</p>
                             <button
-                                onClick={handleDelete}
+                                onClick={async () => {
+                                    await handleDeleteTask();
+                                    window.location.reload();
+                                }}
                                 className="text-red-500 hover:underline"
                             >
                                 Delete

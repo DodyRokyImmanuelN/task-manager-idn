@@ -38,7 +38,15 @@ export default function TaskListColumn({
                 </h2>
                 <div className="relative group">
                     <button
-                        onClick={() => onDeleteListClick(list)}
+                        onClick={() => {
+                            if (
+                                window.confirm(
+                                    "Apakah Anda yakin ingin menghapus list ini?"
+                                )
+                            ) {
+                                onDeleteListClick(list); // Lanjutkan hapus jika user menekan OK
+                            }
+                        }}
                         className="text-gray-400 hover:text-red-600 transition duration-150"
                         title="Delete list"
                     >
